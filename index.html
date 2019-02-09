@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>tinyraytracer-WebGL</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <h1>tinyraytracer</h1>
+    
+    <div id="cvs-0-wrapper">
+        <canvas id="cvs-0" width="1024" height="768"></canvas>
+    </div>
+
+    <script type="text/javascript" src="webgl-utils.js"></script>
+    <script type="text/javascript" src="webgl-setup.js"></script>
+
+    <script>
+    // Step 1: write an image to the disk
+    const width = 1024;
+    const height = 768;
+
+    var frameBuffer = new Uint8Array( width * height * 4 );
+    frameBuffer.width = width;
+    frameBuffer.height = height;
+
+    for (var i = 0; i < height; i++) {
+        for (var j = 0; j < width; j++) {
+            frameBuffer[ i * width * 4 + j * 4 + 0 ] = (i / height) * 256;
+            frameBuffer[ i * width * 4 + j * 4 + 1 ] = (j / width) * 256;
+            frameBuffer[ i * width * 4 + j * 4 + 2 ] = 128;
+            frameBuffer[ i * width * 4 + j * 4 + 3 ] = 255;
+        }
+    }
+    
+    console.info(frameBuffer);
+
+    render(frameBuffer);
+
+    // Step 2, the crucial one: ray tracing
+
+    // Step 3: add more spheres
+
+    // Step 4: lighting
+
+    // Step 5: specular lighting
+
+    // Step 6: shadows
+
+    // Step 7: reflections
+
+    // Step 8: refractions
+
+    // Steo 9: beyond the spheres
+
+    // Step 10: home assignment
+
+    </script>
+</body>
+</html>

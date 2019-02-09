@@ -1,0 +1,14 @@
+{
+  "name": "tinyraytracer-WebGL",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "serve": "ws"
+  },
+  "author": "hyunjun529@gmail.com",
+  "license": "",
+  "devDependencies": {
+    "local-web-server": "^2.6.0"
+  }
+}
