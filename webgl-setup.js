@@ -136,7 +136,7 @@ function render(image) {
                 0,
                 srcFormat,
                 srcType,
-                image); // hyunjun529 : modified for using Uint8Array
+                image.getFrameBuffer()); // hyunjun529 : modified for using Uint8Array
 
   webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 

@@ -13,6 +13,7 @@
         <canvas id="cvs-0" width="1024" height="768"></canvas>
     </div>
 
+    <script type="text/javascript" src="webgl-math.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
     <script type="text/javascript" src="webgl-setup.js"></script>
 
@@ -21,24 +22,39 @@
     const width = 1024;
     const height = 768;
 
-    var frameBuffer = new Uint8Array( width * height * 4 );
-    frameBuffer.width = width;
-    frameBuffer.height = height;
+    var frameBuffer = new FrameBuffer( width, height );
 
     for (var i = 0; i < height; i++) {
         for (var j = 0; j < width; j++) {
-            frameBuffer[ i * width * 4 + j * 4 + 0 ] = (i / height) * 256;
-            frameBuffer[ i * width * 4 + j * 4 + 1 ] = (j / width) * 256;
-            frameBuffer[ i * width * 4 + j * 4 + 2 ] = 128;
-            frameBuffer[ i * width * 4 + j * 4 + 3 ] = 255;
+            frameBuffer.setPixel(
+                i,
+                j, 
+                (i / height) * 256,
+                (j / width) * 256,
+                128,
+                255
+            )
         }
     }
-    
-    console.info(frameBuffer);
-
-    render(frameBuffer);
 
     // Step 2, the crucial one: ray tracing
+    // function Sphere(frameBuffer) {
+    //     var center = [200, 200];
+    //     var radius = 100.0;
+
+    //     bool ray_intersect(const Vec3f &orig, const Vec3f &dir, float &t0) const {
+    //         Vec3f L = center - orig;
+    //         float tca = L*dir;
+    //         float d2 = L*L - tca*tca;
+    //         if (d2 > radius*radius) return false;
+    //         float thc = sqrtf(radius*radius - d2);
+    //         t0       = tca - thc;
+    //         float t1 = tca + thc;
+    //         if (t0 < 0) t0 = t1;
+    //         if (t0 < 0) return false;
+    //         return true;
+    //     }
+    // };
 
     // Step 3: add more spheres
 
@@ -56,6 +72,9 @@
 
     // Step 10: home assignment
 
+    // Rnedering
+    render(frameBuffer);
+    
     </script>
 </body>
 </html>
