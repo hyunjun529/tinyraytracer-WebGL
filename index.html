@@ -56,17 +56,17 @@
     Object.assign( Sphere.prototype, {
 
         ray_intersect: function( orig, dir ) {
-            let L = this.center.sub( orig );
+            let L = this.center.clone().sub( orig );
             let tca = L.dot( dir );
             let d2 = L.dot( L ) - tca * tca;
             if ( d2 > this.radius * this.radius ) { 
-                return { chk: false, dist: Number.MAX_VALUE } 
+                return { chk: false } 
             };
             let thc = Math.sqrt(this.radius * this.radius - d2);
             let t0 = tca - thc;
             let t1 = tca + thc;
             if ( t0 < 0 ) t0 = t1;
-            if ( t0 < 0 ) return { chk: false, dist: Number.MAX_VALUE };
+            if ( t0 < 0 ) return { chk: false };
             return { chk: true, dist: t0 };
         },
 
@@ -74,14 +74,23 @@
 
     // i give up, because original used too many Call by Reference,
     // so i also decide to use returning an object.
-    function cast_ray( orig, dir, spheres ) {
+    function cast_ray( orig, dir, spheres, lights ) {
         var result = scene_intersect( orig, dir, spheres );
 
         if( !result.chk ) {
             return new Vector3(0.2, 0.7, 0.8); // background color
         }
 
-        return result.material.getDiffuse();
+        var diffuse_light_intensity = 0;
+        for ( var i = 0; i < lights.length; i++ ) {
+            let light_dir = lights[i].position.clone()
+                                              .sub(result.point).normalize();
+            diffuse_light_intensity += lights[i].intensity
+                                       * Math.max(0, light_dir.dot(result.N));
+        }
+
+        return result.material.getDiffuse().clone()
+                              .multiplyScalar(diffuse_light_intensity);
     }
 
 
@@ -114,25 +123,40 @@
     function scene_intersect( orig, dir, spheres ) {
         var sphere_dist = Number.MAX_VALUE;
         var finalMaterial;
+        var hit;
+        var N;
 
         for( var i = 0; i < spheres.length; i++ ) {
             var result = spheres[i].ray_intersect( orig, dir );
             if ( result.chk && result.dist < sphere_dist ) {
                 sphere_dist = result.dist;
-                // hit?
-                // N?
+                hit = orig.clone().add(dir.clone().multiplyScalar(result.dist));
+                N = hit.clone().sub(spheres[i].center).normalize();
                 finalMaterial = spheres[i].material;
             }
         }
 
-        // need check, is finalMaterial Null?
+        // need check, is finalMaterial & hit Null?
 
-        return { chk: sphere_dist < 1000, material: finalMaterial };
+        return {
+            chk: sphere_dist < 1000,
+            material: finalMaterial,
+            N: N,
+            point: hit,
+        };
     }
+
 
     //=========================================================================
     // Step 4: lighting
     //=========================================================================
+    function Light ( x, y, z, i ) {
+
+        this.position = new Vector3( x, y, z );
+        this.intensity = i;
+
+    }
+
 
     //=========================================================================
     // Step 5: specular lighting
@@ -161,13 +185,14 @@
     //=========================================================================
     // render (set FrameBuffer)
     //=========================================================================
-
     var sphere1 = new Sphere( new Vector3(-3.0,  0.0, -16), 2, matIvony );
     var sphere2 = new Sphere( new Vector3(-1.0, -1.5, -12), 2, matRedRubber );
     var sphere3 = new Sphere( new Vector3( 1.5, -0.5, -18), 3, matRedRubber );
     var sphere4 = new Sphere( new Vector3( 7.0,  5.0, -18), 4, matIvony );
-
     var spheres = [ sphere1, sphere2, sphere3, sphere4 ];
+
+    var light1 = new Light( -20, 20, 20, 1.5 );
+    var lights = [ light1 ];
 
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
@@ -180,7 +205,7 @@
 
             var dir = new Vector3(x, y, -1).normalize();
 
-            var color = cast_ray( new Vector3(0, 0, 0), dir, spheres );
+            var color = cast_ray( new Vector3(0, 0, 0), dir, spheres, lights );
 
             frameBuffer.setPixelVector3( j, i, color );
         }

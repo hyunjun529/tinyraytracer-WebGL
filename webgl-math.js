@@ -108,6 +108,12 @@ Object.assign( Vector3.prototype, {
 
     },
 
+    clone: function () {
+
+		return new this.constructor( this.x, this.y, this.z );
+
+	},
+
     add: function ( v, w ) {
 
 		if ( w !== undefined ) {
