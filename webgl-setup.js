@@ -40,11 +40,13 @@ void main() {
 }
 `;
 
+var gl;
+
 function render(image) {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
     var canvas = document.getElementById("cvs-0");
-    var gl = canvas.getContext("webgl");
+    gl = canvas.getContext("webgl");
     if (!gl) {
         return;
     }

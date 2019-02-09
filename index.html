@@ -82,43 +82,44 @@
         }
 
         var diffuse_light_intensity = 0;
+        var specular_light_intensity = 0;
         for ( var i = 0; i < lights.length; i++ ) {
-            let light_dir = lights[i].position.clone()
+            var light_dir = lights[i].position.clone()
                                               .sub(result.point).normalize();
+
             diffuse_light_intensity += lights[i].intensity
                                        * Math.max(0, light_dir.dot(result.N));
+
+            specular_light_intensity += Math.pow(
+                Math.max(0.0, reflect(light_dir.clone().multiplyScalar(-1.0),
+                                      result.N.clone()
+                              ).multiplyScalar(-1.0).dot(dir)
+                        ),
+                result.material.specular_exponent
+            ) * lights[i].intensity;
         }
 
-        return result.material.getDiffuse().clone()
-                              .multiplyScalar(diffuse_light_intensity);
+        return result.material.diffuse_color.clone()
+                              .multiplyScalar(diffuse_light_intensity)
+                              .multiplyScalar(result.material.albedo.x)
+                              .add(
+                                  new Vector3( 1.0, 1.0, 1.0 )
+                                    .multiplyScalar(specular_light_intensity)
+                                    .multiplyScalar(result.material.albedo.y)
+                              );
     }
 
 
     //=========================================================================
     // Step 3: add more spheres
     //=========================================================================
-    const matIvony = new Material( 0.4, 0.4, 0.3 );
-    const matRedRubber = new Material( 0.3, 0.1, 0.1 );
+    function Material( a, d, s ) {
 
-    function Material( r, g, b ) {
-
-        this.diffuse_color = new Vector3( r, g, b );
+        this.albedo = a;
+        this.diffuse_color = d;
+        this.specular_exponent = s;
 
     }
-
-    Object.assign( Material.prototype, {
-
-        getDiffuse: function() {
-            return this.diffuse_color;
-        },
-
-        setDiffuse: function( r, g, b ) {
-            this.diffuse_color.x = r;
-            this.diffuse_color.y = g;
-            this.diffuse_color.z = b;
-        },
-
-    } );
 
     function scene_intersect( orig, dir, spheres ) {
         var sphere_dist = Number.MAX_VALUE;
@@ -161,6 +162,15 @@
     //=========================================================================
     // Step 5: specular lighting
     //=========================================================================
+    function reflect( I, N ) {
+        // I - N*2.f*(I*N);
+        return I.clone()
+                .sub(N.clone()
+                      .multiplyScalar(2.0)
+                      .multiply(I.clone().multiply(N))
+                    );
+    }
+
 
     //=========================================================================
     // Step 6: shadows
@@ -185,34 +195,103 @@
     //=========================================================================
     // render (set FrameBuffer)
     //=========================================================================
+    const matIvony = new Material( new Vector2( 0.6, 0.3 ),
+                                   new Vector3(0.4, 0.4, 0.3),
+                                   50 );
+    const matRedRubber = new Material( new Vector2( 0.9, 0.1 ),
+                                       new Vector3(0.3, 0.1, 0.1),
+                                       10 );
+
     var sphere1 = new Sphere( new Vector3(-3.0,  0.0, -16), 2, matIvony );
     var sphere2 = new Sphere( new Vector3(-1.0, -1.5, -12), 2, matRedRubber );
     var sphere3 = new Sphere( new Vector3( 1.5, -0.5, -18), 3, matRedRubber );
     var sphere4 = new Sphere( new Vector3( 7.0,  5.0, -18), 4, matIvony );
     var spheres = [ sphere1, sphere2, sphere3, sphere4 ];
 
-    var light1 = new Light( -20, 20, 20, 1.5 );
-    var lights = [ light1 ];
+    var light1 = new Light( -20,  20,  20, 1.5 );
+    var light2 = new Light(  30,  50, -25, 1.8 );
+    var light3 = new Light(  30,  20,  30, 1.7 );
+    var lights = [ light1, light2, light3 ];
 
-    for (var j = 0; j < height; j++) {
-        for (var i = 0; i < width; i++) {
-            var x = ( 2 * (i + 0.5) / width - 1)
-                    * Math.tan(fov / 2.0)
-                    * width / height;
- 
-            var y = -(2 * (j + 0.5) / height - 1)
-                    * Math.tan(fov / 2.0);
+    function update() {
+        for (var j = 0; j < height; j++) {
+            for (var i = 0; i < width; i++) {
+                var x = ( 2 * (i + 0.5) / width - 1)
+                        * Math.tan(fov / 2.0)
+                        * width / height;
+    
+                var y = -(2 * (j + 0.5) / height - 1)
+                        * Math.tan(fov / 2.0);
 
-            var dir = new Vector3(x, y, -1).normalize();
+                var dir = new Vector3(x, y, -1).normalize();
 
-            var color = cast_ray( new Vector3(0, 0, 0), dir, spheres, lights );
+                var color = cast_ray( new Vector3(0, 0, 0), dir, spheres, lights );
 
-            frameBuffer.setPixelVector3( j, i, color );
+                color.clampScalar( 0.0, 1.0 );
+
+                frameBuffer.setPixelVector3( j, i, color );
+            }
         }
     }
 
+    update();
+
     render(frameBuffer);
+
+    //=========================================================================
+    // animate
+    //=========================================================================
+    var duration = 30;
+    var step = 0;
+    var move1 = new Vector3(  3.0,  0.0,  0.0 );
+    var move2 = new Vector3( -6.0, -1.0,  6.0 );
+    var move3 = new Vector3( -0.5, -0.5, -1.0 );
     
+    function animate() {
+        requestAnimationFrame(animate);
+
+        // clear gl
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // move lights
+        light1.position.add( move1 );
+        light2.position.add( move2 );
+        light3.position.add( move3 );
+        step += 1;
+        if(duration < step) {
+            move1.multiplyScalar( -1.0 );
+            move2.multiplyScalar( -1.0 );
+            move3.multiplyScalar( -1.0 );
+            step = 0;
+        }
+
+        // update
+        update();
+
+        // Upload the image into the texture.
+        var mipLevel = 0;               // the largest mip
+        var internalFormat = gl.RGBA;   // format we want in the texture
+        var srcFormat = gl.RGBA;        // format of data we are supplying
+        var srcType = gl.UNSIGNED_BYTE; // type of data we are supplying
+        gl.texImage2D(gl.TEXTURE_2D,
+            mipLevel,
+            internalFormat,
+            frameBuffer.width,
+            frameBuffer.height,
+            0,
+            srcFormat,
+            srcType,
+            frameBuffer.getFrameBuffer()
+        );
+
+        // Draw the rectangle.
+        var primitiveType = gl.TRIANGLES;
+        var offset = 0;
+        var count = 6;
+        gl.drawArrays(primitiveType, offset, count);
+    }
+    
+    animate();
     </script>
 </body>
 </html>
