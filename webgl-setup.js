@@ -138,7 +138,8 @@ function render(image) {
                 srcType,
                 image.getFrameBuffer()); // hyunjun529 : modified for using Uint8Array
 
-  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+  // hyunjun529 : i don't need to resize
+  // webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
   // Tell WebGL how to convert from clip space to pixels
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);

@@ -18,61 +18,115 @@
     <script type="text/javascript" src="webgl-setup.js"></script>
 
     <script>
+    //=========================================================================
     // Step 1: write an image to the disk
+    //=========================================================================
     const width = 1024;
     const height = 768;
 
     var frameBuffer = new FrameBuffer( width, height );
 
-    for (var i = 0; i < height; i++) {
-        for (var j = 0; j < width; j++) {
-            frameBuffer.setPixel(
-                i,
-                j, 
-                (i / height) * 256,
-                (j / width) * 256,
-                128,
-                255
-            )
+    // set background
+    for (var j = 0; j < height; j++) {
+        for (var i = 0; i < width; i++) {
+            let color = new Vector3(
+                    (i / height),
+                    (j / width),
+                    0.5
+                );
+            frameBuffer.setPixelVector3(i, j, color);
         }
     }
 
+    //=========================================================================
     // Step 2, the crucial one: ray tracing
-    // function Sphere(frameBuffer) {
-    //     var center = [200, 200];
-    //     var radius = 100.0;
+    //=========================================================================
+    const fov = Math.PI / 2.0;
 
-    //     bool ray_intersect(const Vec3f &orig, const Vec3f &dir, float &t0) const {
-    //         Vec3f L = center - orig;
-    //         float tca = L*dir;
-    //         float d2 = L*L - tca*tca;
-    //         if (d2 > radius*radius) return false;
-    //         float thc = sqrtf(radius*radius - d2);
-    //         t0       = tca - thc;
-    //         float t1 = tca + thc;
-    //         if (t0 < 0) t0 = t1;
-    //         if (t0 < 0) return false;
-    //         return true;
-    //     }
-    // };
+    function Sphere( c, r ) {
+        this.center = c;
+        this.radius = r;
+    };
 
+    Object.assign( Sphere.prototype, {
+
+        // t0?
+        ray_intersect: function( orig, dir ) {
+            let L = this.center.sub( orig );
+            let tca = L.dot( dir );
+            let d2 = L.dot( L ) - tca * tca;
+            if ( d2 > this.radius * this.radius ) return false;
+            let thc = Math.sqrt(this.radius * this.radius - d2);
+            let t0 = tca - thc;
+            let t1 = tca + thc;
+            if ( t0 < 0 ) t0 = t1;
+            if ( t0 < 0 ) return false; 
+            return true;
+        },
+
+    } );
+
+    function cast_ray( orig, dir, sphere ) {
+        if( !sphere.ray_intersect( orig, dir ) ) {
+            return new Vector3(0.2, 0.7, 0.8); // background color
+        }
+        return new Vector3(0.4, 0.4, 0.4);
+    }
+
+    //=========================================================================
     // Step 3: add more spheres
+    //=========================================================================
 
+    //=========================================================================
     // Step 4: lighting
+    //=========================================================================
 
+    //=========================================================================
     // Step 5: specular lighting
+    //=========================================================================
 
+    //=========================================================================
     // Step 6: shadows
+    //=========================================================================
 
+    //=========================================================================
     // Step 7: reflections
+    //=========================================================================
 
+    //=========================================================================
     // Step 8: refractions
+    //=========================================================================
 
+    //=========================================================================
     // Steo 9: beyond the spheres
+    //=========================================================================
 
+    //=========================================================================
     // Step 10: home assignment
+    //=========================================================================
 
-    // Rnedering
+    //=========================================================================
+    // render (set FrameBuffer)
+    //=========================================================================
+    var sphere1 = new Sphere( new Vector3(-3, 0, -16), 2);
+
+    for (var j = 0; j < height; j++) {
+        for (var i = 0; i < width; i++) {
+            var x = ( 2 * (i + 0.5) / width - 1)
+                    * Math.tan(fov / 2.0)
+                    * width / height;
+ 
+            var y = -(2 * (j + 0.5) / height - 1)
+                    * Math.tan(fov / 2.0);
+
+            var dir = new Vector3(x, y, -1).normalize();
+
+            var color = cast_ray( new Vector3(0, 0, 0), dir, sphere1 );
+
+            frameBuffer.setPixelVector3( j, i, color );
+        }
+    }
+
     render(frameBuffer);
     
     </script>
