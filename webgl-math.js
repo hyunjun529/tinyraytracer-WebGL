@@ -50,6 +50,7 @@ Object.assign( FrameBuffer.prototype, {
 
 //=============================================================================
 // Vector3
+// https://github.com/mrdoob/three.js/blob/r100/src/math/Vector3.js
 //=============================================================================
 function Vector3( x, y, z ) {
 
