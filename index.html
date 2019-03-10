@@ -29,6 +29,18 @@
 
     var frameBuffer = new FrameBuffer( width, height );
 
+    const matIvony = new Material( new Vector2( 0.6, 0.3 ),
+                                   new Vector3(0.4, 0.4, 0.3),
+                                   50 );
+    const matRedRubber = new Material( new Vector2( 0.9, 0.1 ),
+                                       new Vector3(0.3, 0.1, 0.1),
+                                       10 );
+
+    var sphere1 = new Sphere( new Vector3(-3.0,  0.0, -16), 2, matIvony );
+    var sphere2 = new Sphere( new Vector3(-1.0, -1.5, -12), 2, matRedRubber );
+    var sphere3 = new Sphere( new Vector3( 1.5, -0.5, -18), 3, matRedRubber );
+    var sphere4 = new Sphere( new Vector3( 7.0,  5.0, -18), 4, matIvony );
+
     // set background
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
@@ -195,17 +207,6 @@
     //=========================================================================
     // render (set FrameBuffer)
     //=========================================================================
-    const matIvony = new Material( new Vector2( 0.6, 0.3 ),
-                                   new Vector3(0.4, 0.4, 0.3),
-                                   50 );
-    const matRedRubber = new Material( new Vector2( 0.9, 0.1 ),
-                                       new Vector3(0.3, 0.1, 0.1),
-                                       10 );
-
-    var sphere1 = new Sphere( new Vector3(-3.0,  0.0, -16), 2, matIvony );
-    var sphere2 = new Sphere( new Vector3(-1.0, -1.5, -12), 2, matRedRubber );
-    var sphere3 = new Sphere( new Vector3( 1.5, -0.5, -18), 3, matRedRubber );
-    var sphere4 = new Sphere( new Vector3( 7.0,  5.0, -18), 4, matIvony );
     var spheres = [ sphere1, sphere2, sphere3, sphere4 ];
 
     var light1 = new Light( -20,  20,  20, 1.5 );
@@ -264,6 +265,12 @@
             move3.multiplyScalar( -1.0 );
             step = 0;
         }
+
+        // move sphere
+        sphere1.center.add( move1.clone().multiplyScalar(0.1) );
+        sphere2.center.add( move1.clone().multiplyScalar(-0.05) );
+        sphere4.center.add( move1.clone().multiplyScalar(0.02) );
+
 
         // update
         update();
